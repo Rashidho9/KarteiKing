@@ -1,9 +1,13 @@
 package com.rashid.karteiking;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
@@ -26,6 +30,10 @@ public class MainActivity extends AppCompatActivity {
         textKarte = findViewById(R.id.textKarte);
         CardView karte = findViewById(R.id.karte);
         Button buttonWeiter = findViewById(R.id.buttonWeiter);
+
+        Button buttonHinzufuegen = findViewById(R.id.buttonHinzufuegen);
+        buttonHinzufuegen.setOnClickListener(v ->
+                startActivity(new Intent(this, KarteHinzufuegenActivity.class)));
 
         AppDatabase db = AppDatabase.getInstance(this);
         KarteikarteDao dao = db.karteikarteDao();
@@ -65,5 +73,32 @@ public class MainActivity extends AppCompatActivity {
         Karteikarte k = karten.get(index);
         textZaehler.setText("Karte " + (index + 1) + " von " + karten.size());
         textKarte.setText(zeigtAntwort ? k.getAntwort() : k.getFrage());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_hinzufuegen){
+            startActivity(new Intent(this, KarteHinzufuegenActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AppDatabase db = AppDatabase.getInstance(this);
+        karten = db.karteikarteDao().getAll();
+        if (index >= karten.size()){
+            index = 0;
+        }
+        zeigtAntwort = false;
+        zeigeKarte();
     }
 }
