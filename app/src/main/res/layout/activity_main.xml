@@ -14,6 +14,13 @@
         android:layout_marginBottom="8dp"
         android:text="Karte hinzufügen" />
 
+    <Button
+        android:id="@+id/buttonListe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Alle Karten" />
+
     <TextView
         android:id="@+id/textZaehler"
         android:layout_width="wrap_content"

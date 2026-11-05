@@ -1,6 +1,7 @@
 package com.rashid.karteiking;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 
@@ -17,4 +18,7 @@ public interface KarteikarteDao {
 
     @Query("SELECT COUNT(*) FROM karteikarten")
     int count();
+
+    @Delete
+    void delete(Karteikarte karte);
 }

@@ -35,6 +35,10 @@ public class MainActivity extends AppCompatActivity {
         buttonHinzufuegen.setOnClickListener(v ->
                 startActivity(new Intent(this, KarteHinzufuegenActivity.class)));
 
+        Button buttonListe = findViewById(R.id.buttonListe);
+        buttonListe.setOnClickListener(v ->
+                startActivity(new Intent(this, KartenlisteActivity.class)));
+
         AppDatabase db = AppDatabase.getInstance(this);
         KarteikarteDao dao = db.karteikarteDao();
 
