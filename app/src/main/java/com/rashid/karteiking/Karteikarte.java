@@ -1,15 +1,35 @@
 package com.rashid.karteiking;
 
-// Eine Lernkarte mit Frage und Antwort
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "karteikarten")
 public class Karteikarte {
 
-    private final String frage;
-    private final String antwort;
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
+    private String frage;
+    private String antwort;
+
     public Karteikarte(String frage, String antwort) {
         this.frage = frage;
         this.antwort = antwort;
     }
-    public String getFrage() { return frage; }
-    public String getAntwort() { return antwort; }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getFrage() {
+        return frage;
+    }
+
+    public String getAntwort() {
+        return antwort;
+    }
 }

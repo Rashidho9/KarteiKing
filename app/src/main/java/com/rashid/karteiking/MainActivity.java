@@ -4,66 +4,66 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final List<Karteikarte> karten = new ArrayList<>();
-    private int index = 0;              // aktuelle Karte
-    private boolean zeigeAntwort = false;
-
-    private TextView textKarte;
     private TextView textZaehler;
+    private TextView textKarte;
+    private List<Karteikarte> karten;
+    private int index = 0;
+    private boolean zeigtAntwort = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(bars.left + 48, bars.top + 48, bars.right + 48, bars.bottom + 48);
-            return insets;
-        });
 
-        // Beispielkarten (später aus der Datenbank)
-        karten.add(new Karteikarte("Was bedeutet OOP?", "Objektorientierte Programmierung"));
-        karten.add(new Karteikarte("Was ist eine Klasse?", "Ein Bauplan für Objekte"));
-        karten.add(new Karteikarte("Was macht 'git push'?", "Lädt lokale Commits auf GitHub hoch"));
-
-        textKarte = findViewById(R.id.textKarte);
         textZaehler = findViewById(R.id.textZaehler);
+        textKarte = findViewById(R.id.textKarte);
         CardView karte = findViewById(R.id.karte);
         Button buttonWeiter = findViewById(R.id.buttonWeiter);
 
-        // Karte umdrehen
-        karte.setOnClickListener(v -> {
-            zeigeAntwort = !zeigeAntwort;
-            zeigeKarte();
-        });
+        AppDatabase db = AppDatabase.getInstance(this);
+        KarteikarteDao dao = db.karteikarteDao();
 
-        // Nächste Karte (am Ende wieder von vorne)
-        buttonWeiter.setOnClickListener(v -> {
-            index = (index + 1) % karten.size();
-            zeigeAntwort = false;
-            zeigeKarte();
-        });
+        if (dao.count() == 0) {
+            dao.insertAll(
+                    new Karteikarte("Was ist eine Activity?", "Eine Bildschirmseite der App"),
+                    new Karteikarte("Was ist ein Intent?", "Eine Nachricht, um etwas zu starten"),
+                    new Karteikarte("Was ist Room?", "Eine Datenbank-Bibliothek für Android")
+            );
+        }
 
+        karten = dao.getAll();
         zeigeKarte();
+
+        karte.setOnClickListener(v -> {
+            zeigtAntwort = !zeigtAntwort;
+            zeigeKarte();
+        });
+
+        buttonWeiter.setOnClickListener(v -> {
+            if (karten.isEmpty()) {
+                return;
+            }
+            index = (index + 1) % karten.size();
+            zeigtAntwort = false;
+            zeigeKarte();
+        });
     }
 
-    // Zeigt Frage oder Antwort der aktuellen Karte
     private void zeigeKarte() {
+        if (karten == null || karten.isEmpty()) {
+            textZaehler.setText("Keine Karten");
+            textKarte.setText("Noch keine Karteikarten vorhanden.");
+            return;
+        }
         Karteikarte k = karten.get(index);
-        textKarte.setText(zeigeAntwort ? "✅ " + k.getAntwort() : "❓ " + k.getFrage());
         textZaehler.setText("Karte " + (index + 1) + " von " + karten.size());
+        textKarte.setText(zeigtAntwort ? k.getAntwort() : k.getFrage());
     }
 }
