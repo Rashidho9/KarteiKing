@@ -1,10 +1,13 @@
 package com.rashid.karteiking;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,8 +35,13 @@ public class StapeluebersichtActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        liste.setOnItemLongClickListener((parent, view, position, id) -> {
+            verwalten(stapel.get(position));
+            return true;
+        });
+
         findViewById(R.id.buttonNeuerStapel)
-                .setOnClickListener(v -> neuerStapel());
+                .setOnClickListener(v -> namendialog(null));
     }
 
     @Override
@@ -52,19 +60,47 @@ public class StapeluebersichtActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_1, namen));
     }
 
-    private void neuerStapel() {
+    private boolean geschuetzt(Stapel eintrag) {
+        if (eintrag.getId() != 1) return false;
+        meldung("Allgemein kann nicht umbenannt oder gelöscht werden.");
+        return true;
+    }
+
+    private void verwalten(Stapel eintrag) {
+        if (geschuetzt(eintrag)) return;
+
+        new AlertDialog.Builder(this)
+                .setTitle(eintrag.getName())
+                .setItems(new String[]{"Umbenennen", "Löschen"},
+                        (dialog, which) -> {
+                            if (which == 0) {
+                                namendialog(eintrag);
+                            } else {
+                                loeschenBestaetigen(eintrag);
+                            }
+                        })
+                .show();
+    }
+
+    // null bedeutet: einen neuen Stapel anlegen.
+    private void namendialog(Stapel eintrag) {
+        if (eintrag != null && geschuetzt(eintrag)) return;
+
         EditText eingabe = new EditText(this);
-        eingabe.setHint("Stapelname");
         eingabe.setSingleLine(true);
+        eingabe.setHint("Stapelname");
+        if (eintrag != null) {
+            eingabe.setText(eintrag.getName());
+            eingabe.setSelection(eingabe.length());
+        }
 
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Neuer Stapel")
+                .setTitle(eintrag == null ? "Neuer Stapel" : "Stapel umbenennen")
                 .setView(eingabe)
-                .setPositiveButton("Anlegen", null)
+                .setPositiveButton(eintrag == null ? "Anlegen" : "Speichern", null)
                 .setNegativeButton("Abbrechen", null)
                 .create();
 
-        // Eigener Klick verhindert das Schließen bei leerem Namen.
         dialog.setOnShowListener(d ->
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                         .setOnClickListener(v -> {
@@ -73,10 +109,72 @@ public class StapeluebersichtActivity extends AppCompatActivity {
                                 eingabe.setError("Bitte einen Namen eingeben");
                                 return;
                             }
-                            dao.insert(new Stapel(name));
-                            ladeStapel();
+
+                            try {
+                                boolean ok;
+                                if (eintrag == null) {
+                                    dao.insert(new Stapel(name));
+                                    ok = true;
+                                } else {
+                                    ok = dao.umbenennen(eintrag.getId(), name);
+                                }
+                                if (!ok) {
+                                    meldung("Stapel nicht mehr vorhanden.");
+                                }
+                            } catch (IllegalArgumentException e) {
+                                eingabe.setError(e.getMessage());
+                                return;
+                            } catch (SQLiteException | IllegalStateException e) {
+                                fehler(e);
+                                return;
+                            }
+
                             dialog.dismiss();
+                            ladeStapel();
                         }));
         dialog.show();
+    }
+
+    private void loeschenBestaetigen(Stapel eintrag) {
+        if (geschuetzt(eintrag)) return;
+
+        final int anzahl;
+        try {
+            anzahl = dao.getKartenAnzahl(eintrag.getId());
+        } catch (SQLiteException | IllegalStateException e) {
+            fehler(e);
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Stapel und alle Karten löschen?")
+                .setMessage("Der Stapel „" + eintrag.getName()
+                        + "“ und ALLE seine Karten werden dauerhaft gelöscht "
+                        + "(aktuell " + anzahl + " Karten). "
+                        + "Das kann nicht rückgängig gemacht werden. "
+                        + "Andere Stapel bleiben unverändert.")
+                .setPositiveButton("Stapel und Karten löschen", (dialog, which) -> {
+                    try {
+                        boolean ok = dao.loeschenMitKarten(eintrag.getId());
+                        meldung(ok
+                                ? "Stapel und seine Karten gelöscht."
+                                : "Stapel nicht mehr vorhanden.");
+                    } catch (SQLiteException | IllegalArgumentException
+                             | IllegalStateException e) {
+                        fehler(e);
+                    }
+                    ladeStapel();
+                })
+                .setNegativeButton("Abbrechen", null)
+                .show();
+    }
+
+    private void meldung(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
+    }
+
+    private void fehler(RuntimeException e) {
+        Log.e("Stapeluebersicht", "Datenbankoperation fehlgeschlagen", e);
+        meldung("Änderung fehlgeschlagen. Bitte Logcat prüfen; App-Daten nicht löschen.");
     }
 }
