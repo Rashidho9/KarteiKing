@@ -1,100 +1,115 @@
 package com.rashid.karteiking;
 
 import android.os.Bundle;
-import android.widget.Button;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.List;
 
 public class KarteHinzufuegenActivity extends AppCompatActivity {
 
     public static final String EXTRA_KARTE_ID = "karte_id";
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle state) {
+        super.onCreate(state);
         setContentView(R.layout.activity_karte_hinzufuegen);
 
-        EditText editFrage = findViewById(R.id.editFrage);
-        EditText editAntwort = findViewById(R.id.editAntwort);
-        Button buttonSpeichern = findViewById(R.id.buttonSpeichern);
+        EditText frage = findViewById(R.id.editFrage);
+        EditText antwort = findViewById(R.id.editAntwort);
+        Spinner spinner = findViewById(R.id.spinnerStapel);
+        TextView titel = findViewById(R.id.textFormTitel);
 
-        KarteikarteDao dao =
-                AppDatabase.getInstance(this).karteikarteDao();
+        AppDatabase db = AppDatabase.getInstance(this);
+        KarteikarteDao dao = db.karteikarteDao();
+        List<Stapel> stapel = db.stapelDao().getAll();
 
         boolean bearbeiten = getIntent().hasExtra(EXTRA_KARTE_ID);
-        int karteId = getIntent().getIntExtra(EXTRA_KARTE_ID, -1);
+        int id = getIntent().getIntExtra(EXTRA_KARTE_ID, -1);
+        int zielId = getIntent().getIntExtra(MainActivity.EXTRA_STAPEL_ID, 1);
+        titel.setText(bearbeiten ? "Karte bearbeiten" : "Karte hinzufügen");
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(
-                    bearbeiten ? "Karte bearbeiten" : "Karte hinzufügen");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (stapel.isEmpty()) {
+            abbrechen("Kein Stapel vorhanden");
+            return;
         }
 
         if (bearbeiten) {
-            Karteikarte vorhandeneKarte =
-                    karteId == -1 ? null : dao.getById(karteId);
-
-            if (vorhandeneKarte == null) {
-                Toast.makeText(this,
-                        "Diese Karte existiert nicht mehr.",
-                        Toast.LENGTH_SHORT).show();
-                finish();
+            Karteikarte alt = dao.getById(id);
+            if (alt == null) {
+                abbrechen("Karte nicht mehr vorhanden");
                 return;
             }
-
-            // Nach Bildschirmdrehung stellt Android die Eingaben wieder her.
-            if (savedInstanceState == null) {
-                editFrage.setText(vorhandeneKarte.getFrage());
-                editAntwort.setText(vorhandeneKarte.getAntwort());
+            zielId = alt.getStapelId();
+            if (state == null) {
+                frage.setText(alt.getFrage());
+                antwort.setText(alt.getAntwort());
             }
         }
 
-        buttonSpeichern.setOnClickListener(v -> {
-            String frage = editFrage.getText().toString().trim();
-            String antwort = editAntwort.getText().toString().trim();
+        String[] namen = new String[stapel.size()];
+        int auswahl = 0;
+        for (int i = 0; i < stapel.size(); i++) {
+            namen[i] = stapel.get(i).getName();
+            if (stapel.get(i).getId() == zielId) {
+                auswahl = i;
+            }
+        }
 
-            if (frage.isEmpty()) {
-                editFrage.setError("Bitte eine Frage eingeben.");
-                editFrage.requestFocus();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, namen);
+        adapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        if (state == null) {
+            spinner.setSelection(auswahl);
+        }
+
+        findViewById(R.id.buttonSpeichern).setOnClickListener(v -> {
+            String f = frage.getText().toString().trim();
+            String a = antwort.getText().toString().trim();
+
+            if (f.isEmpty()) {
+                frage.setError("Bitte Frage eingeben");
+                frage.requestFocus();
+                return;
+            }
+            if (a.isEmpty()) {
+                antwort.setError("Bitte Antwort eingeben");
+                antwort.requestFocus();
+                return;
+            }
+            if (bearbeiten && dao.getById(id) == null) {
+                abbrechen("Karte nicht mehr vorhanden");
                 return;
             }
 
-            if (antwort.isEmpty()) {
-                editAntwort.setError("Bitte eine Antwort eingeben.");
-                editAntwort.requestFocus();
-                return;
-            }
+            int position = spinner.getSelectedItemPosition();
+            if (position < 0 || position >= stapel.size()) return;
+
+            Karteikarte karte = new Karteikarte(f, a);
+            karte.setStapelId(stapel.get(position).getId());
 
             if (bearbeiten) {
-                // Nicht versehentlich eine inzwischen gelöschte Karte anlegen.
-                if (dao.getById(karteId) == null) {
-                    Toast.makeText(this,
-                            "Diese Karte existiert nicht mehr.",
-                            Toast.LENGTH_SHORT).show();
-                    finish();
-                    return;
-                }
-
-                Karteikarte geaenderteKarte =
-                        new Karteikarte(frage, antwort);
-                geaenderteKarte.setId(karteId);
-                dao.update(geaenderteKarte);
+                karte.setId(id);
+                dao.update(karte);
             } else {
-                dao.insertAll(new Karteikarte(frage, antwort));
+                dao.insertAll(karte);
             }
 
-            Toast.makeText(this,
-                    "Karte gespeichert", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Karte gespeichert",
+                    Toast.LENGTH_SHORT).show();
             finish();
         });
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
+    private void abbrechen(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
         finish();
-        return true;
     }
 }

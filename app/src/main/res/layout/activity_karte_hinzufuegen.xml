@@ -1,31 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:fillViewport="true">
 
-    <EditText
-        android:id="@+id/editFrage"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Frage"
-        android:inputType="textMultiLine"
-        android:minLines="2" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <EditText
-        android:id="@+id/editAntwort"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:hint="Antwort"
-        android:inputType="textMultiLine"
-        android:minLines="2" />
+        <TextView
+            android:id="@+id/textFormTitel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Karte hinzufügen"
+            android:textSize="24sp" />
 
-    <Button
-        android:id="@+id/buttonSpeichern"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Speichern" />
-</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stapel"
+            android:labelFor="@id/spinnerStapel" />
+
+        <Spinner
+            android:id="@+id/spinnerStapel"
+            android:layout_width="match_parent"
+            android:layout_height="48dp" />
+
+        <EditText
+            android:id="@+id/editFrage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Frage"
+            android:inputType="textMultiLine"
+            android:minLines="2" />
+
+        <EditText
+            android:id="@+id/editAntwort"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:hint="Antwort"
+            android:inputType="textMultiLine"
+            android:minLines="2" />
+
+        <Button
+            android:id="@+id/buttonSpeichern"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Speichern" />
+    </LinearLayout>
+</ScrollView>

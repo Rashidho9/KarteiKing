@@ -11,22 +11,24 @@ import java.util.List;
 @Dao
 public interface KarteikarteDao {
 
-    @Query("SELECT * FROM karteikarten")
+    @Query("SELECT * FROM karteikarten ORDER BY id")
     List<Karteikarte> getAll();
 
-    @Insert
-    void insertAll(Karteikarte... karten);
-
-    @Query("SELECT COUNT(*) FROM karteikarten")
-    int count();
-
-    @Delete
-    void delete(Karteikarte karte);
+    @Query("SELECT * FROM karteikarten WHERE stapelId = :stapelId ORDER BY id")
+    List<Karteikarte> getByStapel(int stapelId);
 
     @Query("SELECT * FROM karteikarten WHERE id = :id LIMIT 1")
     Karteikarte getById(int id);
 
+    @Query("SELECT COUNT(*) FROM karteikarten")
+    int count();
+
+    @Insert
+    void insertAll(Karteikarte... karten);
+
     @Update
     void update(Karteikarte karte);
 
+    @Delete
+    void delete(Karteikarte karte);
 }
