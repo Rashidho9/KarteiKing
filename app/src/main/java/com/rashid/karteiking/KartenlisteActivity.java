@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
+
 public class KartenlisteActivity extends AppCompatActivity {
 
     private KarteikarteDao dao;
@@ -30,6 +32,26 @@ public class KartenlisteActivity extends AppCompatActivity {
 
         adapter = new KartenAdapter(dao.getAll(), this::frageLoeschen);
         recycler.setAdapter(adapter);
+
+        adapter.setOnBearbeitenListener(karte -> {
+            Intent intent = new Intent(
+                    this, KarteHinzufuegenActivity.class);
+
+            intent.putExtra(
+                    KarteHinzufuegenActivity.EXTRA_KARTE_ID,
+                    karte.getId());
+            startActivity(intent);
+        });
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (adapter != null) {
+            adapter.setKarten(dao.getAll());
+        }
     }
 
     private void frageLoeschen(Karteikarte karte) {

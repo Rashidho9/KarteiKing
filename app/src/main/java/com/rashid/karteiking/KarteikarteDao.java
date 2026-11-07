@@ -4,6 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -21,4 +22,11 @@ public interface KarteikarteDao {
 
     @Delete
     void delete(Karteikarte karte);
+
+    @Query("SELECT * FROM karteikarten WHERE id = :id LIMIT 1")
+    Karteikarte getById(int id);
+
+    @Update
+    void update(Karteikarte karte);
+
 }

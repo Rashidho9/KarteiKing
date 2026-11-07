@@ -18,8 +18,17 @@ public class KartenAdapter extends RecyclerView.Adapter<KartenAdapter.ViewHolder
         void onLoeschen(Karteikarte karte);
     }
 
+    public interface OnBearbeitenListener {
+        void onBearbeiten(Karteikarte karte);
+    }
+
     private List<Karteikarte> karten;
     private final OnLoeschenListener listener;
+    private OnBearbeitenListener bearbeitenListener;
+
+    public void setOnBearbeitenListener(OnBearbeitenListener listener) {
+        this.bearbeitenListener = listener;
+    }
 
     public KartenAdapter(List<Karteikarte> karten, OnLoeschenListener listener) {
         this.karten = karten;
@@ -45,6 +54,11 @@ public class KartenAdapter extends RecyclerView.Adapter<KartenAdapter.ViewHolder
         holder.textFrage.setText(karte.getFrage());
         holder.textAntwort.setText(karte.getAntwort());
         holder.buttonLoeschen.setOnClickListener(v -> listener.onLoeschen(karte));
+        holder.buttonBearbeiten.setOnClickListener(v -> {
+            if (bearbeitenListener != null) {
+                bearbeitenListener.onBearbeiten(karte);
+            }
+        });
     }
 
     @Override
@@ -56,12 +70,14 @@ public class KartenAdapter extends RecyclerView.Adapter<KartenAdapter.ViewHolder
         TextView textFrage;
         TextView textAntwort;
         Button buttonLoeschen;
+        Button buttonBearbeiten;
 
         ViewHolder(View itemView) {
             super(itemView);
             textFrage = itemView.findViewById(R.id.textFrage);
             textAntwort = itemView.findViewById(R.id.textAntwort);
             buttonLoeschen = itemView.findViewById(R.id.buttonLoeschen);
+            buttonBearbeiten = itemView.findViewById(R.id.buttonBearbeiten);
         }
     }
 }

@@ -27,6 +27,12 @@
     </LinearLayout>
 
     <Button
+        android:id="@+id/buttonBearbeiten"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bearbeiten" />
+
+    <Button
         android:id="@+id/buttonLoeschen"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
