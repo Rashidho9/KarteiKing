@@ -1,4 +1,4 @@
-package com.rashid.karteiking;
+package com.rashid.karteiking.ui.karten;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,14 +9,25 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.rashid.karteiking.R;
+import com.rashid.karteiking.data.dao.KarteikarteDao;
+import com.rashid.karteiking.data.database.AppDatabase;
+import com.rashid.karteiking.data.entity.Karteikarte;
+import com.rashid.karteiking.ui.lernen.MainActivity;
+
 import java.util.ArrayList;
 
+/**
+ * Zeigt die Karten genau eines Stapels als RecyclerView-Liste.
+ * Öffnet das Bearbeitungsformular und bestätigt das endgültige Löschen einer Karte.
+ */
 public class KartenlisteActivity extends AppCompatActivity {
 
     private KarteikarteDao dao;
     private KartenAdapter adapter;
     private int stapelId;
 
+    /** Verbindet die gefilterte Kartenliste mit Adapter und Bearbeitungsnavigation. */
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -39,12 +50,14 @@ public class KartenlisteActivity extends AppCompatActivity {
         });
     }
 
+    /** Lädt Karten erneut, insbesondere nach dem Bearbeiten oder Verschieben. */
     @Override
     protected void onResume() {
         super.onResume();
         adapter.setKarten(dao.getByStapel(stapelId));
     }
 
+    /** Fragt vor dem dauerhaften Löschen nach und aktualisiert danach die Liste. */
     private void frageLoeschen(Karteikarte karte) {
         new AlertDialog.Builder(this)
                 .setTitle("Karte löschen?")

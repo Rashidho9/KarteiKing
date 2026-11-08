@@ -1,4 +1,4 @@
-package com.rashid.karteiking;
+package com.rashid.karteiking.data.database;
 
 import android.content.Context;
 
@@ -9,6 +9,17 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.rashid.karteiking.data.dao.KarteikarteDao;
+import com.rashid.karteiking.data.dao.StapelDao;
+import com.rashid.karteiking.data.entity.Karteikarte;
+import com.rashid.karteiking.data.entity.Stapel;
+
+/**
+ * Zentraler Room-Zugang zur Datei karteiking.db.
+ * Verwaltet beide Entities, Migration und Erstinitialisierung.
+ * Die synchronisierte Fabrik liefert eine gemeinsame Instanz pro Prozess.
+ * Hauptthread-Abfragen bleiben erlaubt und können die Oberfläche blockieren.
+ */
 @Database(
         entities = {Karteikarte.class, Stapel.class},
         version = 2,
@@ -16,12 +27,20 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 )
 public abstract class AppDatabase extends RoomDatabase {
 
+    // Gemeinsame Instanz; Zugriff erfolgt ausschließlich über getInstance.
     private static AppDatabase INSTANCE;
 
+    /** Liefert den von Room erzeugten Zugriff auf Karten. */
     public abstract KarteikarteDao karteikarteDao();
+
+    /** Liefert den von Room erzeugten Zugriff auf Stapel. */
     public abstract StapelDao stapelDao();
 
     private static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        /**
+         * Ordnet bestehende Karten Allgemein zu und erhält IDs sowie Textwerte.
+         * Für den neuen Fremdschlüssel wird die Kartentabelle neu aufgebaut.
+         */
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase db) {
             db.execSQL("CREATE TABLE IF NOT EXISTS stapel ("
@@ -47,6 +66,10 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * Liefert die gemeinsame Datenbankinstanz mit dem Anwendungskontext.
+     * Registriert die Migration und initialisiert neue Datenbanken mit Allgemein.
+     */
     public static synchronized AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {
             INSTANCE = Room.databaseBuilder(
@@ -55,6 +78,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             "karteiking.db")
                     .addMigrations(MIGRATION_1_2)
                     .addCallback(new Callback() {
+                        /** Legt bei einer neuen Datenbank den Standardstapel ID 1 an. */
                         @Override
                         public void onCreate(@NonNull SupportSQLiteDatabase db) {
                             super.onCreate(db);
@@ -62,6 +86,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     + "VALUES (1, 'Allgemein')");
                         }
                     })
+                    // Lernstand: synchroner Zugriff; größere Datenmengen können UI-Pausen verursachen.
                     .allowMainThreadQueries()
                     .build();
         }

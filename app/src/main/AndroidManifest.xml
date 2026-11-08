@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KarteiKing">
         <activity
-            android:name=".StapeluebersichtActivity"
+            android:name="com.rashid.karteiking.ui.stapel.StapeluebersichtActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,15 +21,15 @@
         </activity>
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.rashid.karteiking.ui.lernen.MainActivity"
             android:exported="false" />
 
         <activity
-            android:name=".KartenlisteActivity"
+            android:name="com.rashid.karteiking.ui.karten.KartenlisteActivity"
             android:exported="false" />
 
         <activity
-            android:name=".KarteHinzufuegenActivity"
+            android:name="com.rashid.karteiking.ui.karten.KarteHinzufuegenActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 

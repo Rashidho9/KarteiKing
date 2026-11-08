@@ -1,4 +1,4 @@
-package com.rashid.karteiking;
+package com.rashid.karteiking.ui.karten;
 
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -9,12 +9,29 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.rashid.karteiking.R;
+import com.rashid.karteiking.data.dao.KarteikarteDao;
+import com.rashid.karteiking.data.database.AppDatabase;
+import com.rashid.karteiking.data.entity.Karteikarte;
+import com.rashid.karteiking.data.entity.Stapel;
+import com.rashid.karteiking.ui.lernen.MainActivity;
+
 import java.util.List;
 
+/**
+ * Gemeinsames Formular zum Anlegen und Bearbeiten einer Karte.
+ * Ein vorhandenes Karten-ID-Extra aktiviert den Bearbeitungsmodus.
+ * Die Stapelauswahl erlaubt das Verschieben in einen anderen Stapel.
+ */
 public class KarteHinzufuegenActivity extends AppCompatActivity {
 
     public static final String EXTRA_KARTE_ID = "karte_id";
 
+    /**
+     * Lädt Stapel und gegebenenfalls die zu bearbeitende Karte.
+     * Vorhandene Texte werden nur beim ersten Aufbau eingesetzt, damit Android
+     * Eingaben nach einer Neuerzeugung der Activity wiederherstellen kann.
+     */
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -52,6 +69,7 @@ public class KarteHinzufuegenActivity extends AppCompatActivity {
             }
         }
 
+        // Die Position im Spinner wird auf die entsprechende Stapel-ID abgebildet.
         String[] namen = new String[stapel.size()];
         int auswahl = 0;
         for (int i = 0; i < stapel.size(); i++) {
@@ -70,6 +88,7 @@ public class KarteHinzufuegenActivity extends AppCompatActivity {
             spinner.setSelection(auswahl);
         }
 
+        // Erst nach erfolgreicher Eingabeprüfung werden Daten gespeichert.
         findViewById(R.id.buttonSpeichern).setOnClickListener(v -> {
             String f = frage.getText().toString().trim();
             String a = antwort.getText().toString().trim();
@@ -96,6 +115,7 @@ public class KarteHinzufuegenActivity extends AppCompatActivity {
             karte.setStapelId(stapel.get(position).getId());
 
             if (bearbeiten) {
+                // Dieselbe ID sorgt für ein Update statt einer neuen Karte.
                 karte.setId(id);
                 dao.update(karte);
             } else {
@@ -108,6 +128,7 @@ public class KarteHinzufuegenActivity extends AppCompatActivity {
         });
     }
 
+    /** Zeigt den Abbruchgrund und beendet das nicht fortsetzbare Formular. */
     private void abbrechen(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
         finish();

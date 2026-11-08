@@ -11,15 +11,16 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 
 /**
- * Instrumented test, which will execute on an Android device.
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ * Instrumentierter Beispieltest für ein Android-Gerät oder einen Emulator.
+ * Prüft die Application-ID, nicht die Datenbank oder die Benutzeroberfläche.
  */
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
+
+    /** Prüft, ob der Zielkontext zur erwarteten Application-ID gehört. */
     @Test
     public void useAppContext() {
-        // Context of the app under test.
+        // Kontext der Ziel-App, nicht der separaten Test-App.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         assertEquals("com.rashid.karteiking", appContext.getPackageName());
     }
